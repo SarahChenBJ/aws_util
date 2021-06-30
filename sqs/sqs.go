@@ -14,11 +14,17 @@ type SqsMessage interface {
 	SetReceiveMsg(message *sqs.ReceiveMessageOutput) error
 }
 
-func GetQueueURL(sess *session.Session, queue *string) (*sqs.GetQueueUrlOutput, error) {
-	// Create an SQS service client
-	svc := sqs.New(sess)
+type sqsClient struct {
+	svc *sqs.SQS
+}
 
-	result, err := svc.GetQueueUrl(&sqs.GetQueueUrlInput{
+func NewSqsClient(sess *session.Session) *sqsClient {
+	return &sqsClient{svc: sqs.New(sess)}
+}
+
+func (c *sqsClient) GetQueueURL(queue *string) (*sqs.GetQueueUrlOutput, error) {
+	// Create an SQS service client
+	result, err := c.svc.GetQueueUrl(&sqs.GetQueueUrlInput{
 		QueueName: queue,
 	})
 	if err != nil {
@@ -28,12 +34,11 @@ func GetQueueURL(sess *session.Session, queue *string) (*sqs.GetQueueUrlOutput, 
 	return result, nil
 }
 
-func sendMsg(sess *session.Session, queueURL *string, msg SqsMessage) error {
+func (c *sqsClient) sendMsg(queueURL *string, msg SqsMessage) error {
 	// Create an SQS service client
 	// snippet-start:[sqs.go.send_message.call]
-	svc := sqs.New(sess)
 
-	_, err := svc.SendMessage(&sqs.SendMessageInput{
+	_, err := c.svc.SendMessage(&sqs.SendMessageInput{
 		//DelaySeconds:      aws.Int64(10),
 		MessageAttributes: msg.GetMsgAttributes(),
 		MessageBody:       msg.GetMsgBody(),
@@ -47,14 +52,14 @@ func sendMsg(sess *session.Session, queueURL *string, msg SqsMessage) error {
 	return nil
 }
 
-func SendMsg(sess *session.Session, queueName string, msg SqsMessage) error {
-	result, err := GetQueueURL(sess, &queueName)
+func (c *sqsClient) SendMsg(queueName string, msg SqsMessage) error {
+	result, err := c.GetQueueURL(&queueName)
 	if err != nil {
 		fmt.Printf("GetQueueURL error: %v", err)
 		return err
 	}
 
-	err = sendMsg(sess, result.QueueUrl, msg)
+	err = c.sendMsg(result.QueueUrl, msg)
 	if err != nil {
 		fmt.Printf("SendMsg error: %v", err)
 		return err
@@ -62,19 +67,16 @@ func SendMsg(sess *session.Session, queueName string, msg SqsMessage) error {
 	return nil
 }
 
-func GetMessages(sess *session.Session, queueName string, output SqsMessage, timeout *int64) error {
-	result, err := GetQueueURL(sess, &queueName)
+func (c *sqsClient) GetMessages(queueName string, output SqsMessage, timeout *int64) error {
+	result, err := c.GetQueueURL(&queueName)
 	if err != nil {
 		fmt.Printf("GetQueueURL error: %v", err)
 		return err
 	}
 	queueURL := result.QueueUrl
 
-	// Create an SQS service client
-	svc := sqs.New(sess)
-
 	// snippet-start:[sqs.go.receive_messages.call]
-	msgResult, err := svc.ReceiveMessage(&sqs.ReceiveMessageInput{
+	msgResult, err := c.svc.ReceiveMessage(&sqs.ReceiveMessageInput{
 		AttributeNames: []*string{
 			aws.String(sqs.MessageSystemAttributeNameSentTimestamp),
 		},

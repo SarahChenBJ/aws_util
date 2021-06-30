@@ -48,7 +48,7 @@ const (
 	defaultGrowthCoefficient = 1.618
 )
 
-type S3Client struct {
+type s3Client struct {
 	s3iface.S3API
 	*s3manager.Uploader
 	*s3manager.Downloader
@@ -61,8 +61,8 @@ type UploadReq struct {
 	ContentLength int64  //optional
 }
 
-func NewS3Client(sess *session.Session) *S3Client {
-	c := &S3Client{
+func NewS3Client(sess *session.Session) *s3Client {
+	c := &s3Client{
 		S3API:      s3.New(sess),
 		Uploader:   s3manager.NewUploader(sess),
 		Downloader: s3manager.NewDownloader(sess),
@@ -70,7 +70,7 @@ func NewS3Client(sess *session.Session) *S3Client {
 	return c
 }
 
-func (c *S3Client) Exists(bucket, key string) bool {
+func (c *s3Client) Exists(bucket, key string) bool {
 	input := &s3.HeadObjectInput{
 		Bucket: aws.String(bucket),
 		Key:    aws.String(key),
@@ -80,7 +80,7 @@ func (c *S3Client) Exists(bucket, key string) bool {
 }
 
 // touch an empty file on s3://bucket/key
-func (c *S3Client) Create(bucket, key string) error {
+func (c *s3Client) Create(bucket, key string) error {
 	input := &s3.PutObjectInput{
 		Bucket: aws.String(bucket),
 		Key:    aws.String(key),
@@ -90,7 +90,7 @@ func (c *S3Client) Create(bucket, key string) error {
 }
 
 // create a file with content on s3://bucketName/bucketKey
-func (c *S3Client) CreateWithContent(bucket, key, content string) error {
+func (c *s3Client) CreateWithContent(bucket, key, content string) error {
 	input := &s3.PutObjectInput{
 		Bucket: aws.String(bucket),
 		Key:    aws.String(key),
@@ -100,7 +100,7 @@ func (c *S3Client) CreateWithContent(bucket, key, content string) error {
 	return err
 }
 
-func (c *S3Client) Remove(bucket, key string, retryTimes int) error {
+func (c *s3Client) Remove(bucket, key string, retryTimes int) error {
 	input := &s3.DeleteObjectInput{
 		Bucket: aws.String(bucket),
 		Key:    aws.String(key),
@@ -120,11 +120,11 @@ func (c *S3Client) Remove(bucket, key string, retryTimes int) error {
 	return nil
 }
 
-func (c *S3Client) Upload(source, bucket, key string, retryTimes int, compressEnabled bool) error {
+func (c *s3Client) Upload(source, bucket, key string, retryTimes int, compressEnabled bool) error {
 	return c.UploadWithAcl(source, bucket, key, "", retryTimes, compressEnabled)
 }
 
-func (c *S3Client) UploadWithAcl(source, bucket, key, acl string, retryTimes int, compressEnabled bool) error {
+func (c *s3Client) UploadWithAcl(source, bucket, key, acl string, retryTimes int, compressEnabled bool) error {
 	fileInfo, err := os.Stat(source)
 	if err != nil {
 		return err
@@ -140,11 +140,11 @@ func (c *S3Client) UploadWithAcl(source, bucket, key, acl string, retryTimes int
 	return nil
 }
 
-func (c *S3Client) UploadFolder(srcFolder, bucket, keyPrefix string, retryTimes int, compressEnabled bool) error {
+func (c *s3Client) UploadFolder(srcFolder, bucket, keyPrefix string, retryTimes int, compressEnabled bool) error {
 	return c.UploadFolderWithAcl(srcFolder, bucket, keyPrefix, "", retryTimes, compressEnabled)
 }
 
-func (c *S3Client) UploadFolderWithAcl(srcFolder, bucket, keyPrefix, acl string, retryTimes int, compressEnabled bool) error {
+func (c *s3Client) UploadFolderWithAcl(srcFolder, bucket, keyPrefix, acl string, retryTimes int, compressEnabled bool) error {
 	files, err := ioutil.ReadDir(srcFolder)
 	if err != nil {
 		return err
@@ -161,11 +161,11 @@ func (c *S3Client) UploadFolderWithAcl(srcFolder, bucket, keyPrefix, acl string,
 	return nil
 }
 
-func (c *S3Client) UploadFile(srcFile, bucket, key string, retryTimes int, compressEnabled bool) error {
+func (c *s3Client) UploadFile(srcFile, bucket, key string, retryTimes int, compressEnabled bool) error {
 	return c.UploadFileWithAcl(srcFile, bucket, key, "", retryTimes, compressEnabled)
 }
 
-func (c *S3Client) UploadFileWithAcl(srcFile, bucket, key, acl string, retryTimes int, compressEnabled bool) error {
+func (c *s3Client) UploadFileWithAcl(srcFile, bucket, key, acl string, retryTimes int, compressEnabled bool) error {
 	if _, err := os.Stat(srcFile); os.IsNotExist(err) {
 		return fmt.Errorf("file %s does not exist", srcFile)
 	}
@@ -196,11 +196,11 @@ func (c *S3Client) UploadFileWithAcl(srcFile, bucket, key, acl string, retryTime
 	return nil
 }
 
-func (c *S3Client) UploadContent(content []byte, bucket, key string, retryTimes int) error {
+func (c *s3Client) UploadContent(content []byte, bucket, key string, retryTimes int) error {
 	return c.UploadContentWithAcl(content, bucket, key, "", retryTimes)
 }
 
-func (c *S3Client) UploadContentWithAcl(content []byte, bucket, key, acl string, retryTimes int) error {
+func (c *s3Client) UploadContentWithAcl(content []byte, bucket, key, acl string, retryTimes int) error {
 	if err := c.doUploadWithAcl(bytes.NewReader(content), bucket, key, acl, retryTimes); err != nil {
 		return err
 	}
@@ -208,7 +208,7 @@ func (c *S3Client) UploadContentWithAcl(content []byte, bucket, key, acl string,
 	return nil
 }
 
-func (c *S3Client) doUploadWithAcl(body io.Reader, bucket, key, acl string, retryTimes int) error {
+func (c *s3Client) doUploadWithAcl(body io.Reader, bucket, key, acl string, retryTimes int) error {
 	input := &s3manager.UploadInput{
 		Bucket: aws.String(bucket),
 		Key:    aws.String(key),
@@ -233,7 +233,7 @@ func (c *S3Client) doUploadWithAcl(body io.Reader, bucket, key, acl string, retr
 	return nil
 }
 
-func (c *S3Client) DownloadFile(dst, bucket, key string, retryTimes int) error {
+func (c *s3Client) DownloadFile(dst, bucket, key string, retryTimes int) error {
 	fileDir := filepath.Dir(dst)
 	if err := os.MkdirAll(fileDir, 0777); err != nil {
 		return fmt.Errorf("failed to mkdir '%s': %s", fileDir, err.Error())
@@ -248,7 +248,7 @@ func (c *S3Client) DownloadFile(dst, bucket, key string, retryTimes int) error {
 	return c.doDownload(file, bucket, key, retryTimes)
 }
 
-func (c *S3Client) ReadFile(bucket, key string, retryTimes int) (string, error) {
+func (c *s3Client) ReadFile(bucket, key string, retryTimes int) (string, error) {
 	buff := &aws.WriteAtBuffer{
 		GrowthCoeff: defaultGrowthCoefficient,
 	}
@@ -260,11 +260,11 @@ func (c *S3Client) ReadFile(bucket, key string, retryTimes int) (string, error) 
 	return string(buff.Bytes()[:]), nil
 }
 
-func (c *S3Client) Copy(srcBucket, srcKey, dstBucket, dstKey string, retryTimes int) error {
+func (c *s3Client) Copy(srcBucket, srcKey, dstBucket, dstKey string, retryTimes int) error {
 	return c.CopyWithAcl(srcBucket, srcKey, dstBucket, dstKey, "", retryTimes)
 }
 
-func (c *S3Client) CopyWithAcl(srcBucket, srcKey, dstBucket, dstKey, acl string, retryTimes int) error {
+func (c *s3Client) CopyWithAcl(srcBucket, srcKey, dstBucket, dstKey, acl string, retryTimes int) error {
 	input := &s3.CopyObjectInput{
 		CopySource: aws.String(srcBucket + "/" + srcKey),
 		Bucket:     aws.String(dstBucket),
@@ -293,12 +293,12 @@ func (c *S3Client) CopyWithAcl(srcBucket, srcKey, dstBucket, dstKey, acl string,
 // If we want to copy an object more than 5GB, we must use multipart copy.
 // We can copy all objects using this operation.
 // This operation is more complex and needs more user-side control than "S3.CopyObject"
-func (c *S3Client) MultipartCopyObject(srcBucket, srcKey, dstBucket, dstKey string, retryTimes int, partSize int64, nCur int) error {
+func (c *s3Client) MultipartCopyObject(srcBucket, srcKey, dstBucket, dstKey string, retryTimes int, partSize int64, nCur int) error {
 	// TODO
 	return nil
 }
 
-func (c *S3Client) List(bucket, keyPrefix string) ([]string, error) {
+func (c *s3Client) List(bucket, keyPrefix string) ([]string, error) {
 	input := &s3.ListObjectsInput{
 		Bucket: aws.String(bucket),
 		Prefix: aws.String(keyPrefix),
@@ -336,7 +336,7 @@ func (c *S3Client) List(bucket, keyPrefix string) ([]string, error) {
 //   s3://bucket/a/c/f3.file
 //   s3://bucket/a/f4.file
 // ListSubDir(bucket, "a/") -> []string{"b", "c"}
-func (c *S3Client) ListSubDir(bucket, prefix string) ([]string, error) {
+func (c *s3Client) ListSubDir(bucket, prefix string) ([]string, error) {
 	if prefix != "" && prefix[len(prefix)-1:] != "/" {
 		prefix += "/"
 	}
@@ -372,7 +372,7 @@ func (c *S3Client) ListSubDir(bucket, prefix string) ([]string, error) {
 	return rst, nil
 }
 
-func (c *S3Client) PathExists(bucket, prefix string) (bool, error) {
+func (c *s3Client) PathExists(bucket, prefix string) (bool, error) {
 	if prefix != "" && prefix[len(prefix)-1:] != "/" {
 		prefix += "/"
 	}
@@ -389,7 +389,7 @@ func (c *S3Client) PathExists(bucket, prefix string) (bool, error) {
 	return len(output.CommonPrefixes) > 0, nil
 }
 
-func (c *S3Client) HeadObj(bucket, key string) (*s3.HeadObjectOutput, error) {
+func (c *s3Client) HeadObj(bucket, key string) (*s3.HeadObjectOutput, error) {
 	input := &s3.HeadObjectInput{
 		Bucket: aws.String(bucket),
 		Key:    aws.String(key),
@@ -403,7 +403,7 @@ func (c *S3Client) HeadObj(bucket, key string) (*s3.HeadObjectOutput, error) {
 	return output, nil
 }
 
-func (c *S3Client) doDownload(w io.WriterAt, bucket, key string, retryTimes int) error {
+func (c *s3Client) doDownload(w io.WriterAt, bucket, key string, retryTimes int) error {
 	input := &s3.GetObjectInput{
 		Bucket: aws.String(bucket),
 		Key:    aws.String(key),
@@ -423,7 +423,7 @@ func (c *S3Client) doDownload(w io.WriterAt, bucket, key string, retryTimes int)
 	return nil
 }
 
-func (c *S3Client) compressFile(srcFile, dstFile string) error {
+func (c *s3Client) compressFile(srcFile, dstFile string) error {
 	srcFileHandler, err := os.Open(srcFile)
 	if err != nil {
 		return err
@@ -455,7 +455,7 @@ func (c *S3Client) compressFile(srcFile, dstFile string) error {
 	return nil
 }
 
-func (c *S3Client) GetDownloadURL(bucket, key string, expireTimeSecond int64, retryTimes int) (string, error) {
+func (c *s3Client) GetDownloadURL(bucket, key string, expireTimeSecond int64, retryTimes int) (string, error) {
 	getReq, _ := c.S3API.GetObjectRequest(&s3.GetObjectInput{
 		Bucket: aws.String(bucket),
 		Key:    aws.String(key),
@@ -475,7 +475,7 @@ func (c *S3Client) GetDownloadURL(bucket, key string, expireTimeSecond int64, re
 	return url, nil
 }
 
-func (c *S3Client) GetUploadURL(bucket string, req *UploadReq, expireTimeSecond int64, retryTimes int) (string, error) {
+func (c *s3Client) GetUploadURL(bucket string, req *UploadReq, expireTimeSecond int64, retryTimes int) (string, error) {
 	if req == nil {
 		return "", fmt.Errorf("invalid upload request")
 	}
@@ -508,7 +508,7 @@ func (c *S3Client) GetUploadURL(bucket string, req *UploadReq, expireTimeSecond 
 	return url, nil
 }
 
-func (c *S3Client) GetObjectTagging(bucket, key string, retryTimes int) (map[string]string, error) {
+func (c *s3Client) GetObjectTagging(bucket, key string, retryTimes int) (map[string]string, error) {
 	getReq := &s3.GetObjectTaggingInput{
 		Bucket: aws.String(bucket),
 		Key:    aws.String(key),
@@ -529,7 +529,7 @@ func (c *S3Client) GetObjectTagging(bucket, key string, retryTimes int) (map[str
 	return tagMap, nil
 }
 
-func (c *S3Client) PutObjectTagging(bucket, key string, tags map[string]string, retryTimes int) error {
+func (c *s3Client) PutObjectTagging(bucket, key string, tags map[string]string, retryTimes int) error {
 	putReq := &s3.PutObjectTaggingInput{
 		Bucket:  aws.String(bucket),
 		Key:     aws.String(key),
@@ -550,7 +550,7 @@ func (c *S3Client) PutObjectTagging(bucket, key string, tags map[string]string, 
 	return nil
 }
 
-func (c *S3Client) DeleteObjectTagging(bucket, key string, retryTimes int) error {
+func (c *s3Client) DeleteObjectTagging(bucket, key string, retryTimes int) error {
 	delReq := &s3.DeleteObjectTaggingInput{
 		Bucket: aws.String(bucket),
 		Key:    aws.String(key),

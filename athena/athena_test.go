@@ -309,7 +309,7 @@ func TestAthenaEngine_getAthenaWithRole(t *testing.T) {
 		args   args
 		want   *athena.Athena
 	}{
-	// TODO: Add test cases.
+		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -346,7 +346,7 @@ func TestAthenaEngine_getAthenaWithRegion(t *testing.T) {
 		args   args
 		want   *athena.Athena
 	}{
-	// TODO: Add test cases.
+		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -384,7 +384,7 @@ func TestAthenaEngine_ExecuteQuery(t *testing.T) {
 		wantQueryID string
 		wantErr     bool
 	}{
-	// TODO: Add test cases.
+		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -547,7 +547,7 @@ func TestAthenaEngine_QueryResult(t *testing.T) {
 		want    *ResponseData
 		wantErr bool
 	}{
-	// TODO: Add test cases.
+		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -617,7 +617,7 @@ func TestAthenaEngine_getResultByQueryID(t *testing.T) {
 		want1   []*athena.Row
 		wantErr bool
 	}{
-	// TODO: Add test cases.
+		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

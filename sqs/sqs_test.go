@@ -67,7 +67,7 @@ func Test_sendMsg(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := sendMsg(tt.args.sess, tt.args.queueURL, tt.args.msg); (err != nil) != tt.wantErr {
+			if err := NewSqsClient(s).sendMsg(tt.args.queueURL, tt.args.msg); (err != nil) != tt.wantErr {
 				t.Errorf("sendMsg() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -89,7 +89,7 @@ func TestSendMsg(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := SendMsg(s, tt.args.queueName, tt.args.msg); (err != nil) != tt.wantErr {
+			if err := NewSqsClient(s).SendMsg(tt.args.queueName, tt.args.msg); (err != nil) != tt.wantErr {
 				t.Errorf("SendMsg() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -111,7 +111,7 @@ func TestGetQueueURL(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := GetQueueURL(tt.args.sess, tt.args.queue)
+			got, err := NewSqsClient(s).GetQueueURL(tt.args.queue)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetQueueURL() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -139,7 +139,7 @@ func TestGetMessages(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := GetMessages(tt.args.sess, tt.args.queueName, tt.args.output, tt.args.timeout); (err != nil) != tt.wantErr {
+			if err := NewSqsClient(s).GetMessages(tt.args.queueName, tt.args.output, tt.args.timeout); (err != nil) != tt.wantErr {
 				t.Errorf("GetMessages() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
